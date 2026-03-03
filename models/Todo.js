@@ -13,6 +13,10 @@ const todoSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
 });
 todoSchema.set("toJSON", {
   transform: (document, returnedObject) => {

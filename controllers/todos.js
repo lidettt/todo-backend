@@ -1,12 +1,14 @@
 // const bcrypt = require("bcrypt");
 const todosRouter = require("express").Router();
+const { protect } = require("../utils/authMiddleware");
 // const User = require("../models/user");
 const Todo = require("../models/Todo");
 
 // GET //
-todosRouter.get("/", async (request, response, next) => {
+todosRouter.get("/", protect, async (request, response, next) => {
   try {
-    const todos = await Todo.find({});
+    // Only find todos belonging to the logged-in user
+    const todos = await Todo.find({ user: request.user._id });
     response.json(todos);
   } catch (error) {
     next(error);
@@ -14,14 +16,16 @@ todosRouter.get("/", async (request, response, next) => {
 });
 
 // POST //
-todosRouter.post("/", async (request, response, next) => {
+todosRouter.post("/", protect, async (request, response, next) => {
   try {
     const body = request.body;
     const todo = new Todo({
       title: body.title,
       completed: body.completed || false,
+      user: request.user._id,
     });
     const savedTodo = await todo.save();
+    // await savedTodo.populate("user", "name email");
     response.status(201).json(savedTodo);
   } catch (error) {
     next(error);
@@ -29,13 +33,16 @@ todosRouter.post("/", async (request, response, next) => {
 });
 
 // PUT //
-todosRouter.put("/:id", async (request, response, next) => {
+todosRouter.put("/:id", protect, async (request, response, next) => {
   try {
     const { title, completed } = request.body;
 
     const todo = await Todo.findById(request.params.id);
     if (!todo) {
       return response.status(404).json({ error: "Todo not found" });
+    }
+    if (todo.user.toString() !== request.user._id.toString()) {
+      return response.status(403).json({ error: "Unauthorized update" });
     }
 
     // Update only if the value exists in the request
@@ -51,6 +58,15 @@ todosRouter.put("/:id", async (request, response, next) => {
 // DELETE
 todosRouter.delete("/:id", async (request, response, next) => {
   try {
+    const todo = await Todo.findById(request.params.id);
+    if (!todo) {
+      return response.status(404).json({ error: "Todo not found!" });
+    }
+    if (todo.user.toString() !== request.user._id.toString()) {
+      return response
+        .status(403)
+        .json({ error: "Only the owner can delete this!" });
+    }
     const result = await Todo.findByIdAndDelete(request.params.id);
     if (!result) {
       return response
