@@ -15,13 +15,14 @@ const protect = async (request, response, next) => {
         error: "Token missing",
       });
     }
-    const decodedToken = jwt.verify(token, process.env.SECRET);
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
     if (!decodedToken.userId) {
       return response.status(401).json({ error: "token invalid" });
     }
 
     // Fetch user without password
-    const user = await User.findById(decodedToken.userId).select("-password");
+    // const user = await User.findById(decodedToken.userId).select("-password");
+    const user = await User.findById(decodedToken.userId);
 
     // Check if user still exists in DB
     if (!user) {
@@ -30,10 +31,16 @@ const protect = async (request, response, next) => {
 
     // ATTACH to the request object
     request.user = user;
-
     next();
   } catch (error) {
     next(error);
   }
 };
-module.exports = protect;
+const isAdmin = async (request, response, next) => {
+  if (request.user && request.user.role === "admin") {
+    next();
+  } else {
+    return response.status(403).json({ error: "Access Denied, Admin only." });
+  }
+};
+module.exports = { protect, isAdmin };

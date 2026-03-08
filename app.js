@@ -21,6 +21,7 @@ app.use(express.json());
 app.use(middleware.requestLogger);
 
 app.use("/api/todos", todosRouter);
+
 app.use("/api/users", usersRouter);
 app.use("/api/auth/register", registerRouter);
 app.use("/api/auth/login", loginRouter);
