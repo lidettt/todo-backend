@@ -10,7 +10,7 @@ registerRouter.post(
       const { email, name, password } = request.body;
       const existedEmail = await User.findOne({ email });
       if (existedEmail) {
-        return response.status(400).json({ message: "Email already exist." });
+        return response.status(409).json({ message: "Email already exist." });
       }
       const user = new User({
         email,
