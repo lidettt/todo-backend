@@ -28,11 +28,11 @@ app.use(
   }),
 );
 
-app.use("/api/todos", todosRouter);
+app.use("/todos", todosRouter);
 
-app.use("/api/users", usersRouter);
-app.use("/api/auth/register", registerRouter);
-app.use("/api/auth/login", loginRouter);
+app.use("/users", usersRouter);
+app.use("/auth/register", registerRouter);
+app.use("/auth/login", loginRouter);
 
 app.use(middleware.unknownEndpoint);
 app.use(middleware.errorHandler);
